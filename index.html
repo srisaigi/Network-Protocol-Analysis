@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Interactive network protocol analysis and troubleshooting lab" />
+  <title>PacketTrace — Network Analysis Lab</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="#"><span class="brand-mark">PT</span><span>PacketTrace</span></a>
+    <nav aria-label="Main navigation">
+      <a class="nav-link active" href="#overview"><span>⌂</span>Overview</a>
+      <a class="nav-link" href="#protocols"><span>◎</span>Protocols</a>
+      <a class="nav-link" href="#packet-flow"><span>≋</span>Packet Flow</a>
+      <a class="nav-link" href="#troubleshooting"><span>⌕</span>Troubleshooting</a>
+      <a class="nav-link" href="#lab"><span>▤</span>Lab Notes</a>
+    </nav>
+    <div class="capture-status"><span class="status-dot"></span><div><strong>Capture ready</strong><small>Interface: eth0</small></div></div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <div><p class="eyebrow">ANALYSIS WORKSPACE</p><h1>Network Protocol Analysis</h1></div>
+      <button class="icon-button" id="themeToggle" aria-label="Toggle theme">◐</button>
+    </header>
+
+    <section id="overview" class="content-section">
+      <div class="hero-card">
+        <div>
+          <span class="tag">LAB 01 · CONNECTIVITY</span>
+          <h2>Trace the conversation.<br><em>Find the failure.</em></h2>
+          <p>Packet-level evidence for DNS, DHCP, ARP, ICMP, TCP and UDP communication.</p>
+          <div class="hero-actions">
+            <a class="button primary" href="#packet-flow">View packet flow</a>
+            <a class="button secondary" href="docs/lab-guide.md">Open lab guide</a>
+          </div>
+        </div>
+        <div class="network-visual" aria-label="Network packet flow diagram">
+          <div class="node client"><span>01</span><strong>Client</strong><small>192.168.1.20</small></div>
+          <div class="route route-one"></div>
+          <div class="node gateway"><span>02</span><strong>Gateway</strong><small>192.168.1.1</small></div>
+          <div class="route route-two"></div>
+          <div class="node server"><span>03</span><strong>Server</strong><small>10.0.0.12</small></div>
+        </div>
+      </div>
+
+      <div class="metrics-grid">
+        <article class="metric"><small>PACKETS ANALYZED</small><strong id="packetCount">1,248</strong><span class="trend">+18% today</span></article>
+        <article class="metric"><small>TCP RETRANS.</small><strong id="retransCount">12</strong><span class="warning">Investigate</span></article>
+        <article class="metric"><small>DNS QUERIES</small><strong id="dnsCount">84</strong><span class="trend">All resolved</span></article>
+        <article class="metric"><small>CAPTURE TIME</small><strong>06:42</strong><span>min:sec</span></article>
+      </div>
+    </section>
+
+    <section id="protocols" class="content-section">
+      <div class="section-heading"><div><p class="eyebrow">PROTOCOL MATRIX</p><h2>Protocol observations</h2></div><span class="capture-pill">PCAP · 1.2 MB</span></div>
+      <div class="protocol-grid">
+        <article class="protocol-card dns"><div class="protocol-icon">DNS</div><div><h3>DNS</h3><p>Resolution path</p></div><strong>84</strong></article>
+        <article class="protocol-card dhcp"><div class="protocol-icon">DHCP</div><div><h3>DHCP</h3><p>Address assignment</p></div><strong>4</strong></article>
+        <article class="protocol-card arp"><div class="protocol-icon">ARP</div><div><h3>ARP</h3><p>MAC discovery</p></div><strong>36</strong></article>
+        <article class="protocol-card icmp"><div class="protocol-icon">ICMP</div><div><h3>ICMP</h3><p>Echo reachability</p></div><strong>20</strong></article>
+        <article class="protocol-card tcp"><div class="protocol-icon">TCP</div><div><h3>TCP</h3><p>Reliable sessions</p></div><strong>642</strong></article>
+        <article class="protocol-card udp"><div class="protocol-icon">UDP</div><div><h3>UDP</h3><p>Datagram traffic</p></div><strong>362</strong></article>
+      </div>
+    </section>
+
+    <section id="packet-flow" class="content-section split-section">
+      <div class="panel">
+        <div class="panel-header"><div><p class="eyebrow">STREAM 001</p><h2>TCP handshake</h2></div><span class="success">ESTABLISHED</span></div>
+        <div class="timeline">
+          <div class="timeline-row"><span class="time">0.000</span><span class="packet-dot green"></span><div><b>[SYN]</b> 192.168.1.20 → 10.0.0.12:443</div><code>Seq=0</code></div>
+          <div class="timeline-row"><span class="time">0.018</span><span class="packet-dot blue"></span><div><b>[SYN, ACK]</b> 10.0.0.12 → 192.168.1.20</div><code>Seq=0 Ack=1</code></div>
+          <div class="timeline-row"><span class="time">0.019</span><span class="packet-dot green"></span><div><b>[ACK]</b> 192.168.1.20 → 10.0.0.12</div><code>Ack=1</code></div>
+          <div class="timeline-row"><span class="time">0.021</span><span class="packet-dot purple"></span><div><b>[PSH, ACK]</b> Application data</div><code>Len=517</code></div>
+        </div>
+      </div>
+      <div class="panel filter-panel">
+        <p class="eyebrow">WIRESHARK FILTERS</p>
+        <h2>Quick isolation</h2>
+        <button class="filter-item" data-filter="tcp.flags.syn == 1 && tcp.flags.ack == 0"><span>TCP Handshake</span><code>tcp.flags.syn == 1</code></button>
+        <button class="filter-item" data-filter="tcp.analysis.retransmission"><span>Retransmissions</span><code>tcp.analysis.retransmission</code></button>
+        <button class="filter-item" data-filter="dns"><span>DNS packets</span><code>dns</code></button>
+        <button class="filter-item" data-filter="dhcp or bootp"><span>DHCP packets</span><code>dhcp or bootp</code></button>
+        <button class="filter-item" data-filter="arp"><span>ARP packets</span><code>arp</code></button>
+      </div>
+    </section>
+
+    <section id="troubleshooting" class="content-section">
+      <div class="section-heading"><div><p class="eyebrow">INCIDENT WORKFLOW</p><h2>Troubleshooting checklist</h2></div></div>
+      <div class="checklist" id="checklist">
+        <label><input type="checkbox" checked><span><b>Validate link and IP configuration</b><small>Check interface, gateway and subnet with Linux networking tools.</small></span><code>ip a / ip route</code></label>
+        <label><input type="checkbox" checked><span><b>Verify local gateway resolution</b><small>Confirm ARP has mapped the gateway IP to a MAC address.</small></span><code>arp -n / ip neigh</code></label>
+        <label><input type="checkbox"><span><b>Test DNS and application reachability</b><small>Separate name resolution failures from network or service failures.</small></span><code>nslookup / dig</code></label>
+        <label><input type="checkbox"><span><b>Inspect retransmissions and resets</b><small>Look for loss, MTU issues, ACL blocks or process failures.</small></span><code>tcp.analysis.*</code></label>
+      </div>
+    </section>
+
+    <section id="lab" class="content-section lab-footer">
+      <div><p class="eyebrow">NEXT STEP</p><h2>Recreate the lab locally</h2><p>Capture live traffic, run the analysis script and write findings in your lab report.</p></div>
+      <a class="button primary" href="docs/lab-guide.md">Read lab guide →</a>
+    </section>
+  </main>
+  <div class="toast" id="toast">Filter copied</div>
+  <script src="assets/app.js"></script>
+</body>
+</html>

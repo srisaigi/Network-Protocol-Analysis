@@ -1,0 +1,4 @@
+Category,Timestamp,Source,Destination,Protocol,Details,Finding
+Example,2026-11-23 10:00:00,192.168.1.20,192.168.1.1,ARP,Who has 192.168.1.1?,Gateway MAC discovered
+Example,2026-11-23 10:00:01,192.168.1.20,10.0.0.53,DNS,Query example.com,Resolution successful
+Example,2026-11-23 10:00:02,192.168.1.20,10.0.0.12,TCP,SYN retransmission,Potential packet loss or filtering
